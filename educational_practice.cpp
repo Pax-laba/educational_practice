@@ -11,6 +11,7 @@ vector<string> splitString(string file_name, string& original_string);
 int sortAndTime(vector<string>& words);
 void sort(vector <string>& words);
 int number(string str);
+void writingToFileResult(string name_file, vector<string> words);
 
 int main()
 {
@@ -25,6 +26,9 @@ int main()
 
     //сортировка и время 
     int time = sortAndTime(words);
+
+    //запись в файл result
+    writingToFileResult(name_file, words);
 
     return 0;
 }
@@ -132,4 +136,17 @@ int number(string str)
         char ch = str[0] + 'а' - 'А'; //если не Ё то ищем где находится маленькая буква за счет нахождения кода маленькой буквы, за счет прибавления к большой букве разности между маленькой и большой буквой
         return cyrillic_low_reg.find(ch);
     }
+}
+
+void writingToFileResult(string name_file, vector <string> words)
+{
+    fstream file_result;
+    file_result.open("result_" + name_file + ".txt", ios::out); // открываем файл на запись в него, если файла нет, то он создастся
+
+    //вывод слов
+    for (int i = 0; i < words.size(); i++)
+    {
+        file_result << words[i] << endl;
+    }
+    file_result.close();
 }
