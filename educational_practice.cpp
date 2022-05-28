@@ -12,6 +12,8 @@ int sortAndTime(vector<string>& words);
 void sort(vector <string>& words);
 int number(string str);
 void writingToFileResult(string name_file, vector<string> words);
+vector<int> numberWords(vector<string> words);
+void writingToFileAnalysis(string name_file, string original_string, int time, int word_count, vector<int> number_words_array);
 
 int main()
 {
@@ -29,6 +31,12 @@ int main()
 
     //запись в файл result
     writingToFileResult(name_file, words);
+
+    //подсчет количества слов на каждую букву
+    vector<int> number_words_array = numberWords(words);
+
+    //запись в файл analysis 
+    writingToFileAnalysis(name_file, original_string, time, words.size(), number_words_array);
 
     return 0;
 }
@@ -149,4 +157,48 @@ void writingToFileResult(string name_file, vector <string> words)
         file_result << words[i] << endl;
     }
     file_result.close();
+}
+
+vector<int> numberWords(vector<string> words)
+{
+    vector<int> number_words_array(33); //массив длиной 33, изначально заполнен нулями. 
+    //Каждый элемент - это количество слов на букву, номер в алфавите которой, равен индексу элемента в массиве
+
+    string cyrillic_high_reg = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъэьэюя"; //алфавит русский
+    for (int i = 0; i < words.size(); i++)
+    {
+        for (int j = 0; j < cyrillic_high_reg.size(); j++) //проходим по всему массиву количества
+        {
+            if (cyrillic_high_reg[j] == words[i][0]) //если первая буква равна какой-то букве из верхнего регистра, то увеличиваем
+                number_words_array[j]++;
+            if (cyrillic_low_reg[j] == words[i][0]) //если первая буква равна какой-то букве из нижнего регистра, то увеличиваем
+                number_words_array[j]++;
+        }
+    }
+    return number_words_array;
+}
+
+void writingToFileAnalysis(string name_file, string original_string, int time, int word_count, vector<int> number_words_array)
+{
+    fstream file_analysis;
+
+    file_analysis.open("analysis_" + name_file + ".txt", ios::out); // открываем файл на запись в него, если файла нет, то он создастся
+
+    file_analysis
+        << "Введенный текст: " << endl
+        << original_string << endl
+        << "Вариант 15: кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка вставками " << endl
+        << "Количество слов: " << word_count << endl
+        << "Время сортировки: " << static_cast<double>(time) / 1000 << " сек" << endl //static_cast это приведение типа
+        << "Статистика: " << endl;
+
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъэьэюя"; //алфавит русский
+
+    //вывод количества слов на каждую букву
+    for (int i = 0; i < number_words_array.size(); i++)
+    {
+        file_analysis << cyrillic_low_reg[i] << ": " << number_words_array[i] << endl; //выводим букву и количество слов на эту букву
+    }
+    file_analysis.close(); //закрываем файл
 }
