@@ -128,7 +128,7 @@ void sort(vector <string>& words)
 
 int number(string str)
 {
-    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъэьэюя"; //алфавит русский
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
 
     if (str[0] >= 'а' && str[0] <= 'я' || str[0] == 'ё') //если нижнего регистра то возвращем номер в русском алфавите
     {
@@ -165,7 +165,7 @@ vector<int> numberWords(vector<string> words)
     //Каждый элемент - это количество слов на букву, номер в алфавите которой, равен индексу элемента в массиве
 
     string cyrillic_high_reg = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
-    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъэьэюя"; //алфавит русский
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
     for (int i = 0; i < words.size(); i++)
     {
         for (int j = 0; j < cyrillic_high_reg.size(); j++) //проходим по всему массиву количества
@@ -193,12 +193,21 @@ void writingToFileAnalysis(string name_file, string original_string, int time, i
         << "Время сортировки: " << static_cast<double>(time) / 1000 << " сек" << endl //static_cast это приведение типа
         << "Статистика: " << endl;
 
-    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъэьэюя"; //алфавит русский
+    cout
+        << "Введенный текст: " << endl
+        << original_string << endl
+        << "Вариант 15: кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка вставками " << endl
+        << "Количество слов: " << word_count << endl
+        << "Время сортировки: " << static_cast<double>(time) / 1000 << " сек" << endl //static_cast это приведение типа
+        << "Статистика: " << endl;
+
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
 
     //вывод количества слов на каждую букву
     for (int i = 0; i < number_words_array.size(); i++)
     {
         file_analysis << cyrillic_low_reg[i] << ": " << number_words_array[i] << endl; //выводим букву и количество слов на эту букву
+        cout << cyrillic_low_reg[i] << ": " << number_words_array[i] << endl; //выводим букву и количество слов на эту букву
     }
     file_analysis.close(); //закрываем файл
 }
