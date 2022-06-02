@@ -137,8 +137,6 @@ https://en.cppreference.com/w/
 5	Справочник по работе с Github – URL: 
 https://docs.github.com/en
  
-ПРИЛОЖЕНИЕ А
-Исходный код программы
 #include <iostream>
 #include <string>
 #include <iostream>
@@ -148,286 +146,200 @@ https://docs.github.com/en
 
 using namespace std;
 
-vector<string> separateWords(string text);
-string getText(string name_file);
-void writeToResult(string name_file, vector<string> array_of_words);
-bool isNumber(string s);
-int sort(vector <string>& array_of_words);
-int findInAlphabet(char a);
-vector<int> getArrayCountWords(vector<string> array_of_words);
-void writeToAnalysis(string name_file, string text, int word_count, vector<int> number_words_array, int time);
+vector<string> splitString(string file_name, string& original_string);
+int sort(vector <string>& words);
+int number(string str);
+void writingToFileResult(string name_file, vector<string> words);
+vector<int> numberWords(vector<string> words);
+void writingToFileAnalysis(string name_file, string original_string, int time, int word_count, vector<int> number_words_array);
 
 int main()
 {
     setlocale(0, ""); // поддержка кириллицы в консоли (вывод)
 
-    string name_file; //название исходного файла
-
+    string name_file, original_string; //переменные имени файла и исходной строки
     cout << "Введите номер файла: ";
     cin >> name_file;
 
-    //функция получения текста
-    string text = getText(name_file);
+    //разбивка строки, полученной из текста, на массив слов
+    vector <string> words = splitString(name_file, original_string);
 
-    //функция разбивает текст на слова 
-    vector <string> array_of_words = separateWords(text);
-
-    //сортировка Шелла
-    int time = sort(array_of_words);
+    //сортировка и время 
+    int time = sort(words);
 
     //запись в файл result
-    writeToResult(name_file, array_of_words);
+    writingToFileResult(name_file, words);
 
     //подсчет количества слов на каждую букву
-    vector<int> number_words_array = getArrayCountWords(array_of_words);
-
-    int words_count = array_of_words.size(); //количество слов
+    vector<int> number_words_array = numberWords(words);
 
     //запись в файл analysis 
-    writeToAnalysis(name_file, text, words_count, number_words_array, time);
+    writingToFileAnalysis(name_file, original_string, time, words.size(), number_words_array);
 
     return 0;
 }
 
-string getText(string name_file)
+vector<string> splitString(string name_file, string& original_string)
 {
-    string text = ""; //исходная строка
-    ifstream file_original; //создаем переменную файла
+    fstream file_original; //создаем переменную файла
 
-    file_original.open("original_" + name_file + ".txt"); // открываем файл
+    file_original.open("original_" + name_file + ".txt", ios::in); // открываем файл на запись из файла
+
+    vector<string> words;
+    string s = "";
+
+    char ch;
 
     if (file_original.is_open()) //если файл открылся 
     {
-        char ch;
         while (file_original.get(ch)) //пока можем считать символ из файла
         {
-            text += ch;; //прибавляем символ к строке 
+            original_string += ch;; //прибавляем символ к строке 
         }
         file_original.close(); // Закрытие файла
     }
     else
     {
-        cout << "Файл original не открылся";
+        cout << "Исходный файл не открылся";
         exit(0);
     }
-    return text;
-}
 
-vector<string> separateWords(string text)
-{
-    vector<string> array_of_words; //массив слов
-    string s = "";
+    original_string = '"' + original_string + '"'; //добавляем кавычки, чтобы потом не было проблем со считыаванием последнего символа
 
-    text = '"' + text + '"'; //добавляем кавычки
-    text = '"' + text + '"'; //добавляем кавычки
+    char symbol, symbol_next;
 
-    string high_letters = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
-    string low_letters = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    string numbers = "0123456789";
-
-    for (int i = 2; i < text.length() - 2; i++)
+    for (int i = 0; i < original_string.length() - 1; i++)
     {
-        if (high_letters.find(text[i]) != -1 || low_letters.find(text[i]) != -1) //если символ строки буква из кириллицы
+        symbol = original_string[i];
+        symbol_next = original_string[i + 1];
+
+        if ((symbol >= 'А' && symbol <= 'Я' || symbol >= 'а' && symbol <= 'я' || symbol == 'Ё' || symbol == 'ё') //если символ строки буква из кириллицы 
+            || //или 
+            (symbol == '-' && (symbol_next >= 'А' && symbol_next <= 'Я' || symbol_next >= 'а' && symbol_next <= 'я' || symbol_next == 'Ё' || symbol_next == 'ё') && s.size() != 0)) //символ это -, а дальше идет буква из кириллицы и размер строки не равен 0, то есть есть часть слова перед тире
 
         {
-            s += text[i]; //собираем слово 
-            if (high_letters.find(text[i + 1]) == -1 && low_letters.find(text[i + 1]) == -1 && text[i + 1] != '-')
+            s += symbol; //собираем слово 
+            if ((((symbol >= 'А' && symbol <= 'Я') || symbol == 'Ё') && //если символ буквы большого регистра
+                ((symbol_next < 'А' || symbol_next > 'Я' && symbol_next < 'а' || symbol_next > 'я') && symbol != 'Ё' && symbol != 'ё')) //а следующий символ - все кроме букв обоих регистров
+                || //или 
+                (((symbol >= 'а' && symbol <= 'я') || symbol == 'ё') && //символ - буква маленького регистра
+                    (symbol_next < 'а' || symbol_next > 'я') && symbol_next != 'ё' && symbol_next != '-') //а следующий символ - все кроме букв маленького регистра
+                )
             {
-                array_of_words.push_back(s); //добавляем в массив строку
+                words.push_back(s); //добавляем в массив строку
                 s = ""; //обнуляем строку
             }
         }
-        else
-        {
-            if (numbers.find(text[i]) != -1 || text[i] == ',' && numbers.find(text[i + 1]) != -1) //если символ строки цифра или запятая 
-            {
-                s += text[i]; //собираем слово 
-                if (numbers.find(text[i + 1]) == -1 && text[i + 1] != ',' || numbers.find(text[i + 2]) == -1 && text[i + 1] == ',') //следующий символ не цифра и не запятая или след символ запятая а после не цифра
-                {
-                    array_of_words.push_back(s); //добавляем в массив строку
-                    s = ""; //обнуляем строку
-                }
-            }
-            else
-            {
-
-                if (text[i] == '-' && (numbers.find(text[i + 1]) != -1 || ((high_letters.find(text[i + 1]) != -1 || low_letters.find(text[i + 1]) != -1) && s != ""))) //если символ строки минус и следующий символ цифра
-                {
-                    s += text[i]; //собираем слово 
-                }
-            }
-        }
     }
-    return array_of_words;
+    return words;
 }
 
-void writeToResult(string name_file, vector <string> array_of_words)
+int sort(vector <string>& words)
 {
-    ofstream file_result;
-    file_result.open("result_" + name_file + ".txt"); // открываем файл на запись в него
+    int start_time = clock();
+
+    string temp; // временная переменная для хранения значения элемента сортируемого массива
+    int last_index; // индекс предыдущего элемента
+
+    for (int i = 1; i < words.size(); i++)
+    {
+        temp = words[i]; // инициализируем временную переменную текущим значением элемента массива
+        last_index = i - 1; // запоминаем индекс предыдущего элемента массива
+        while (last_index >= 0 && number(words[last_index]) > number(temp)) // пока индекс не равен 0 и предыдущий элемент массива больше текущего
+        {
+            words[last_index + 1] = words[last_index]; // перестановка элементов массива
+            words[last_index] = temp;
+            last_index--;
+        }
+    }
+    int end_time = clock();
+    return end_time - start_time;
+}
+
+int number(string str)
+{
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
+
+    if (str[0] >= 'а' && str[0] <= 'я' || str[0] == 'ё') //если нижнего регистра то возвращем номер в русском алфавите
+    {
+        return cyrillic_low_reg.find(str[0]);
+    }
+    else //иначе
+    {
+        if (str[0] == 'Ё') //если Ё то ищем где маленькая Ё находится
+        {
+            char ch = 'ё';
+            return cyrillic_low_reg.find(ch);
+        }
+        char ch = str[0] + 'а' - 'А'; //если не Ё то ищем где находится маленькая буква за счет нахождения кода маленькой буквы, за счет прибавления к большой букве разности между маленькой и большой буквой
+        return cyrillic_low_reg.find(ch);
+    }
+}
+
+void writingToFileResult(string name_file, vector <string> words)
+{
+    fstream file_result;
+    file_result.open("result_" + name_file + ".txt", ios::out); // открываем файл на запись в него, если файла нет, то он создастся
 
     //вывод слов
-    for (int i = 0; i < array_of_words.size(); i++)
+    for (int i = 0; i < words.size(); i++)
     {
-        file_result << array_of_words[i] << endl;
+        file_result << words[i] << endl;
     }
     file_result.close();
 }
 
-int sort(vector <string>& array_of_words)
+vector<int> numberWords(vector<string> words)
 {
-    string numbers = "0123456789-"; //цифры и минус, то с чего может начинаться число
+    vector<int> number_words_array(33); //массив длиной 33, изначально заполнен нулями. 
+    //Каждый элемент - это количество слов на букву, номер в алфавите которой, равен индексу элемента в массиве
 
-    int i, j, step, number_tmp, start_time, end_time;
-    string tmp;
-
-    vector <string> array_of_numbers;
-    vector <string> subarray_of_words;
-
-    //получаем массив чисел и массив слов
-    for (i = 0; i < array_of_words.size(); i++)
+    string cyrillic_high_reg = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
+    for (int i = 0; i < words.size(); i++)
     {
-        if (numbers.find(array_of_words[i][0]) != -1)
-            array_of_numbers.push_back(array_of_words[i]);
-        else
-            subarray_of_words.push_back(array_of_words[i]);
-    }
-
-    start_time = clock();
-    //сортируем массив слов
-    for (step = subarray_of_words.size() / 2; step > 0; step /= 2)
-    {
-        for (i = step; i < subarray_of_words.size(); i++)
+        for (int j = 0; j < cyrillic_high_reg.size(); j++) //проходим по всему массиву количества
         {
-            tmp = subarray_of_words[i];
-            number_tmp = findInAlphabet(subarray_of_words[i][0]); //номер в алфавите
-
-            for (j = i; j >= step; j -= step)
-            {
-                if (number_tmp < findInAlphabet(subarray_of_words[j - step][0]))
-                    subarray_of_words[j] = subarray_of_words[j - step];
-                else
-                    break;
-            }
-            subarray_of_words[j] = tmp;
+            if (cyrillic_high_reg[j] == words[i][0]) //если первая буква равна какой-то букве из верхнего регистра, то увеличиваем
+                number_words_array[j]++;
+            if (cyrillic_low_reg[j] == words[i][0]) //если первая буква равна какой-то букве из нижнего регистра, то увеличиваем
+                number_words_array[j]++;
         }
     }
-
-    //сортируем массив чисел
-    double double_number_tmp, double_number;
-    for (step = array_of_numbers.size() / 2; step > 0; step /= 2)
-    {
-        for (i = step; i < array_of_numbers.size(); i++)
-        {
-            tmp = array_of_numbers[i];
-            if (isNumber(array_of_numbers[i])) //если строка - дробное число 
-            {
-                double_number_tmp = stod(array_of_numbers[i]); //временной переменной присваиваем число
-
-                for (j = i; j >= step; j -= step)
-                {
-                    if (isNumber(array_of_numbers[j])) //если строка - дробное число
-                    {
-                        if (double_number_tmp < stod(array_of_numbers[j - step])) //сравниваем число временной переменной и число array_of_numbers[j - step]
-                            array_of_numbers[j] = array_of_numbers[j - step];
-                        else
-                            break;
-                    }
-                }
-                array_of_numbers[j] = tmp;
-            }
-        }
-    }
-    end_time = clock();
-    array_of_words = {};
-
-    //сливаем массивы обратно в один массив
-    for (i = 0; i < subarray_of_words.size(); i++)
-    {
-        array_of_words.push_back(subarray_of_words[i]);
-    }
-
-    for (i = 0; i < array_of_numbers.size(); i++)
-    {
-        array_of_words.push_back(array_of_numbers[i]);
-    }
-
-    return end_time - start_time;
+    return number_words_array;
 }
 
-bool isNumber(string s)
+void writingToFileAnalysis(string name_file, string original_string, int time, int word_count, vector<int> number_words_array)
 {
-    try
-    {
-        double a = stod(s);
-        return 1;
-    }
-    catch (invalid_argument e)
-    {
-        return 0;
-    }
-}
+    fstream file_analysis;
 
-int findInAlphabet(char a)
-{
-    //функция возвращает индекс вхождения символа в алфавит 
-    string low_letters = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-    string high_letters = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
-
-    if (high_letters.find(a) != -1)
-        return high_letters.find(a);
-    else
-        return low_letters.find(a);
-}
-
-vector<int> getArrayCountWords(vector<string> array_of_words)
-{
-    vector<int> count_words_array(33);
-    //Каждый элемент массив - это количество слов на букву
-
-    string high_letters = "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ"; //алфавит русский
-    string low_letters = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
-
-    for (int i = 0; i < array_of_words.size(); i++) //идем по всему массиву строк
-    {
-        if (!isNumber(array_of_words[i]))
-        {
-            count_words_array[findInAlphabet(array_of_words[i][0])]++;// увеличиваем элемент с индексом равным номеру маленькой буквы в нижнем регистре
-        }
-    }
-    return count_words_array;
-}
-
-void writeToAnalysis(string name_file, string text, int word_count, vector<int> number_words_array, int time)
-{
-    ofstream file_analysis;
-
-    file_analysis.open("analysis_" + name_file + ".txt"); // открываем файл на запись в него
+    file_analysis.open("analysis_" + name_file + ".txt", ios::out); // открываем файл на запись в него, если файла нет, то он создастся
 
     file_analysis
-        << "Исходный текст: " << endl
-        << "<<" << text << ">>" << endl
-        << "Параметры выбранного варианта (22): кириллица, по алфавиту, по возрастанию, учитывать числа, сортировка шелла" << endl
+        << "Введенный текст: " << endl
+        << original_string << endl
+        << "Вариант 15: кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка вставками " << endl
         << "Количество слов: " << word_count << endl
-        << "Время сортировки: " << static_cast<double>(time) / 1000 << " с" << endl
-        << "Статистика (количество слов на каждую букву алфавита): " << endl;
+        << "Время сортировки: " << static_cast<double>(time) / 1000 << " сек" << endl //static_cast это приведение типа
+        << "Статистика: " << endl;
 
     cout
-        << "Исходный текст: " << endl
-        << "<<" << text << ">>" << endl
-        << "Параметры выбранного варианта (22): кириллица, по алфавиту, по возрастанию, учитывать числа, сортировка шелла" << endl
+        << "Введенный текст: " << endl
+        << original_string << endl
+        << "Вариант 15: кириллица, по алфавиту, по возрастанию, игнорировать числа, сортировка вставками " << endl
         << "Количество слов: " << word_count << endl
-        << "Время сортировки: " << static_cast<double>(time) / 1000 << " с" << endl
-        << "Статистика (количество слов на каждую букву алфавита): " << endl;
+        << "Время сортировки: " << static_cast<double>(time) / 1000 << " сек" << endl //static_cast это приведение типа
+        << "Статистика: " << endl;
 
-    string lo_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя";
+    string cyrillic_low_reg = "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"; //алфавит русский
 
     //вывод количества слов на каждую букву
     for (int i = 0; i < number_words_array.size(); i++)
     {
-        file_analysis << lo_reg[i] << ": " << number_words_array[i] << endl;
-        cout << lo_reg[i] << ": " << number_words_array[i] << endl;
+        file_analysis << cyrillic_low_reg[i] << ": " << number_words_array[i] << endl; //выводим букву и количество слов на эту букву
+        cout << cyrillic_low_reg[i] << ": " << number_words_array[i] << endl; //выводим букву и количество слов на эту букву
     }
-    file_analysis.close();
+    file_analysis.close(); //закрываем файл
 }
+
 
