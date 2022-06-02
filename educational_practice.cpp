@@ -8,8 +8,7 @@
 using namespace std;
 
 vector<string> splitString(string file_name, string& original_string);
-int sortAndTime(vector<string>& words);
-void sort(vector <string>& words);
+int sort(vector <string>& words);
 int number(string str);
 void writingToFileResult(string name_file, vector<string> words);
 vector<int> numberWords(vector<string> words);
@@ -27,7 +26,7 @@ int main()
     vector <string> words = splitString(name_file, original_string);
 
     //сортировка и время 
-    int time = sortAndTime(words);
+    int time = sort(words);
 
     //запись в файл result
     writingToFileResult(name_file, words);
@@ -96,19 +95,9 @@ vector<string> splitString(string name_file, string& original_string)
     return words;
 }
 
-int sortAndTime(vector<string>& words)
+int sort(vector <string>& words)
 {
-    string tmp;
-
     int start_time = clock();
-    sort(words);
-    int end_time = clock();
-
-    return end_time - start_time;
-}
-
-void sort(vector <string>& words)
-{
 
     string temp; // временная переменная для хранения значения элемента сортируемого массива
     int last_index; // индекс предыдущего элемента
@@ -124,6 +113,8 @@ void sort(vector <string>& words)
             last_index--;
         }
     }
+    int end_time = clock();
+    return end_time - start_time;
 }
 
 int number(string str)
